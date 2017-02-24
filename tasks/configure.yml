@@ -1,0 +1,31 @@
+---
+- name: copy postfix configuration file.
+  template:
+    src: etc/postfix/main.cf.j2
+    dest: /etc/postfix/main.cf
+    owner: root
+    group: root
+    mode: 'u=rw,g=r,o=r'
+    backup: yes
+  notify: restart postfix
+
+- name: add SMTP sasl user credentials
+  template:
+    src: etc/postfix/sasl_passwd.j2
+    dest: '{{ postfix_sasl_passwd_file }}'
+    owner: root
+    group: root
+    mode: 'u=rw,g=,o='
+    backup: yes
+  when: postfix_sasl_enabled
+  register: postfix_relay_user_result
+
+- name: enable SMTP sasl user credentials
+  command: postmap {{ postfix_sasl_passwd_file }}
+  when: postfix_sasl_enabled and postfix_relay_user_result.changed
+  notify: restart postfix
+
+- name: create postfix cacert.pem
+  shell: cat /etc/ssl/certs/Thawte_Premium_Server_CA.pem | sudo tee -a {{ postfix_tls_cafile }} creates={{ postfix_tls_cafile }}
+  when: postfix_tls_enabled
+  notify: restart postfix

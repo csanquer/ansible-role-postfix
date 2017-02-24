@@ -1,0 +1,45 @@
+---
+- name: install debian dependencies
+  apt:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - libsasl2-2
+    - ca-certificates
+    - libsasl2-modules
+    - mailutils
+
+- name: remove debian old exim4
+  apt:
+    name: '{{ item }}'
+    state: absent
+    purge: yes
+  with_items:
+    - exim4
+    - exim4-daemon-light
+    - exim4-config
+    - exim4-base
+    - bsd-mailx
+
+- name: preconfigure postfix mailer type
+  debconf:
+    name: "postfix question='postfix/main_mailer_type'"
+    value: 'postfix_main_mailer_type'
+    vtype: 'select'
+
+- name: preconfigure postfix mailname
+  debconf:
+    name: "postfix question='postfix/mailname'"
+    value: '{{ postfix_mailname }}'
+    vtype: 'string'
+
+- name: preconfigure postfix destinations
+  debconf:
+    name: "postfix question='postfix/destinations'"
+    value: "{{ postfix_destinations|join(', ') }}"
+    vtype: 'string'
+
+- name: install debian postfix
+  apt:
+    name: postfix
+    state: "{{ postfix_state|default('present') }}"

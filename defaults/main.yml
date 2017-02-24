@@ -1,2 +1,23 @@
 ---
-# defaults file for postfix
+postfix_state: latest
+
+postfix_main_mailer_type: 'Internet Site'
+postfix_mailname: "{{ ansible_fqdn }}"
+postfix_destinations:
+  - "{{ postfix_mailname }}"
+  - "localhost.localdomain"
+  - localhost
+
+# for SMTP relay
+postfix_relay_host:
+postfix_relay_port: 587
+# user credentials for smtp relay
+postfix_relay_username:
+postfix_relay_password:
+
+postfix_sasl_enabled: false
+postfix_sasl_passwd_file: '/etc/postfix/sasl_passwd'
+
+postfix_tls_enabled: false
+postfix_tls_cafile: '/etc/postfix/cacert.pem'
+postfix_tls_security_level:
